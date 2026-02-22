@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: ftt-backend
+    env: node
+    region: Africa  # change to: oregon | ohio | singapore | frankfurt
+    plan: free         # change to: starter | standard | pro as needed
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/v1/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 3030  # Render assigns its own port; this is the default
+
+      - key: MONGODB_URI
+        sync: false   # set this manually in Render dashboard (keep secret)
+
+      - key: JWT_SECRET
+        sync: false   # set this manually in Render dashboard (keep secret)
+
+      - key: JWT_EXPIRES_IN
+        value: 7d

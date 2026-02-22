@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname,'public')))
 app.use('/assets',express.static(path.join(__dirname,'public/assets')))
 
 const env = dotenv.config();
-const connectionString = process.env.mongoLogin
+const connectionString = process.env.MONGODB_URI
 
 // mongoose.connect(connectionString, { useUnifiedTopology: true })
 //   .then(client => {
