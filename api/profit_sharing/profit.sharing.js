@@ -6,13 +6,13 @@
  * This class handles the profit sharing mechanism for seasons:
  * - Randomly selects 2 eligible donors when season reaches goal
  * - Eligibility: Donors must have donated at least 5 times
- * - Profit calculation: totalRaised × 1.8 × 0.1 × 0.44 × 0.63
+ * - Profit calculation: totalRaised × 1.8 × 0.1 × 0.44 × 0.63 × 0.4
  * - Distribution: Split between 2 vendors (agents and stakeholders)
  *
  * AGENTS BREAKDOWN (50% of profit):
  * - Freelancing Agent: 39.49%
  * - Corporate Agent: 30.50%
- * - Major Agent: $10,000 per $1,000,000 raised
+ * - Major Agent: 18.04%
  * - Miscellaneous: Remainder
  *
  * STAKEHOLDERS BREAKDOWN (50% of profit):
@@ -36,23 +36,25 @@ const mongoose = require('mongoose');
 class ProfitSharing {
   /**
    * Profit calculation multipliers (applied sequentially)
-   * Formula: totalRaised × 1.8 × 0.1 × 0.44 × 0.63
+   * Formula: totalRaised × 1.8 × 0.1 × 0.44 × 0.63 × 0.4
    */
   static MULTIPLIERS = {
     INITIAL: 1.8,      // 180% of total raised
     FIRST: 0.1,        // 10% of result
     SECOND: 0.44,      // 44% of result
-    FINAL: 0.63        // 63% of result
+    THIRD: 0.63,       // 63% of result
+    FINAL: 0.4         // 40% of result
   };
 
   /**
    * Final multiplier (product of all multipliers)
-   * 1.8 × 0.1 × 0.44 × 0.63 = 0.049896 (~4.99% of total raised)
+   * 1.8 × 0.1 × 0.44 × 0.63 × 0.4 = 0.019958 (~2.00% of total raised)
    */
   static FINAL_MULTIPLIER =
     ProfitSharing.MULTIPLIERS.INITIAL *
     ProfitSharing.MULTIPLIERS.FIRST *
     ProfitSharing.MULTIPLIERS.SECOND *
+    ProfitSharing.MULTIPLIERS.THIRD *
     ProfitSharing.MULTIPLIERS.FINAL;
 
   /**
@@ -79,7 +81,7 @@ class ProfitSharing {
   static AGENT_DISTRIBUTION = {
     FREELANCING: 0.3949,    // 39.49%
     CORPORATE: 0.3050,      // 30.50%
-    MAJOR_PER_MILLION: 10000, // $10,000 per $1,000,000 raised
+    MAJOR: 0.1804,          // 18.04%
     // MISCELLANEOUS: remainder after above allocations
   };
 
@@ -255,7 +257,7 @@ class ProfitSharing {
 
   /**
    * Calculate profit amount based on season's total raised
-   * Formula: totalRaised × 1.8 × 0.1 × 0.44 × 0.63
+   * Formula: totalRaised × 1.8 × 0.1 × 0.44 × 0.63 × 0.4
    *
    * @param {number} totalRaised - Season's total amount raised
    * @returns {Object} Profit calculation breakdown
@@ -264,7 +266,8 @@ class ProfitSharing {
     const step1 = totalRaised * ProfitSharing.MULTIPLIERS.INITIAL;
     const step2 = step1 * ProfitSharing.MULTIPLIERS.FIRST;
     const step3 = step2 * ProfitSharing.MULTIPLIERS.SECOND;
-    const finalProfit = step3 * ProfitSharing.MULTIPLIERS.FINAL;
+    const step4 = step3 * ProfitSharing.MULTIPLIERS.THIRD;
+    const finalProfit = step4 * ProfitSharing.MULTIPLIERS.FINAL;
 
     return {
       totalRaised,
@@ -282,7 +285,11 @@ class ProfitSharing {
           result: Math.round(step3 * 100) / 100
         },
         step4: {
-          formula: `${Math.round(step3 * 100) / 100} × ${ProfitSharing.MULTIPLIERS.FINAL}`,
+          formula: `${Math.round(step3 * 100) / 100} × ${ProfitSharing.MULTIPLIERS.THIRD}`,
+          result: Math.round(step4 * 100) / 100
+        },
+        step5: {
+          formula: `${Math.round(step4 * 100) / 100} × ${ProfitSharing.MULTIPLIERS.FINAL}`,
           result: Math.round(finalProfit * 100) / 100
         }
       },
@@ -298,20 +305,15 @@ class ProfitSharing {
    * @param {number} totalRaised - Season's total raised (for major agent calculation)
    * @returns {Object} Detailed agent distribution
    */
-  static calculateAgentDistribution(agentsShare, totalRaised) {
-    // Calculate major agent share based on millions raised
-    const millionsRaised = totalRaised / 1000000;
-    const majorAgentShare = millionsRaised * ProfitSharing.AGENT_DISTRIBUTION.MAJOR_PER_MILLION;
-
-    // Calculate freelancing and corporate shares
+  static calculateAgentDistribution(agentsShare) {
     const freelancingShare = agentsShare * ProfitSharing.AGENT_DISTRIBUTION.FREELANCING;
     const corporateShare = agentsShare * ProfitSharing.AGENT_DISTRIBUTION.CORPORATE;
+    const majorAgentShare = agentsShare * ProfitSharing.AGENT_DISTRIBUTION.MAJOR;
 
     // Miscellaneous gets the remainder
     const allocatedTotal = freelancingShare + corporateShare + majorAgentShare;
     const miscellaneousShare = Math.max(0, agentsShare - allocatedTotal);
 
-    // Calculate percentages of total agents share
     const calculatePercentage = (amount) => agentsShare > 0
       ? Math.round((amount / agentsShare) * 100 * 100) / 100
       : 0;
@@ -331,13 +333,8 @@ class ProfitSharing {
         },
         major: {
           amount: Math.round(majorAgentShare * 100) / 100,
-          percentage: calculatePercentage(majorAgentShare),
-          description: 'Major Agent',
-          calculation: {
-            millionsRaised: Math.round(millionsRaised * 100) / 100,
-            ratePerMillion: ProfitSharing.AGENT_DISTRIBUTION.MAJOR_PER_MILLION,
-            formula: `${Math.round(millionsRaised * 100) / 100} × $${ProfitSharing.AGENT_DISTRIBUTION.MAJOR_PER_MILLION.toLocaleString()}`
-          }
+          percentage: 18.04,
+          description: 'Major Agent'
         },
         miscellaneous: {
           amount: Math.round(miscellaneousShare * 100) / 100,
@@ -402,12 +399,12 @@ class ProfitSharing {
    * @param {number} totalRaised - Season's total raised (for major agent calculation)
    * @returns {Object} Vendor distribution breakdown with sub-allocations
    */
-  static distributeToVendors(totalProfit, totalRaised) {
+  static distributeToVendors(totalProfit) {
     const agentsShare = totalProfit * ProfitSharing.VENDOR_SPLIT.AGENTS;
     const stakeholdersShare = totalProfit * ProfitSharing.VENDOR_SPLIT.STAKEHOLDERS;
 
     // Get detailed breakdowns
-    const agentDistribution = ProfitSharing.calculateAgentDistribution(agentsShare, totalRaised);
+    const agentDistribution = ProfitSharing.calculateAgentDistribution(agentsShare);
     const stakeholderDistribution = ProfitSharing.calculateStakeholderDistribution(stakeholdersShare);
 
     return {
@@ -516,8 +513,7 @@ class ProfitSharing {
 
       // Step 6: Distribute to vendors with detailed breakdown
       const vendorDistribution = ProfitSharing.distributeToVendors(
-        profitCalculation.finalProfit,
-        season.totalRaised
+        profitCalculation.finalProfit
       );
 
       // Step 7: Prepare result

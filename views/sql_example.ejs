@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>100 SQL Practice Questions</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;background:#0f0f13;color:#e2e0f0;min-height:100vh;padding:0 0 60px}
+header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:48px 40px 40px;border-bottom:1px solid #2a2a4a;position:sticky;top:0;z-index:100}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#fff}
+h1 span{color:#7c6eff}
+.subtitle{font-size:13px;color:#8888aa;margin-top:4px}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{background:rgba(124,110,255,0.12);border:1px solid rgba(124,110,255,0.25);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#a89fff;white-space:nowrap}
+.controls{max-width:1100px;margin:24px auto 0;padding:0 40px;display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2a2a4a;background:#1a1a2e;color:#8888aa;transition:all .2s;font-family:inherit}
+.filter-btn.active,.filter-btn:hover{background:#7c6eff;color:#fff;border-color:#7c6eff}
+main{max-width:1100px;margin:0 auto;padding:32px 40px 0;display:grid;gap:16px}
+.q-card{background:#16161f;border:1px solid #2a2a4a;border-radius:14px;overflow:hidden;transition:border-color .2s}
+.q-card:hover{border-color:#4a4a7a}
+.q-header{display:flex;align-items:flex-start;gap:14px;padding:18px 20px 14px;cursor:pointer}
+.q-num{background:#7c6eff;color:#fff;font-size:11px;font-weight:700;min-width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.q-text{font-size:14px;font-weight:500;color:#e2e0f0;line-height:1.5;flex:1}
+.q-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em}
+.tag-where{background:#1a3a2a;color:#4ade80}
+.tag-select{background:#1a2a3a;color:#60a5fa}
+.tag-agg{background:#2a1a3a;color:#c084fc}
+.tag-join{background:#3a2a1a;color:#fb923c}
+.tag-cte{background:#2a1a1a;color:#f87171}
+.tag-union{background:#1a2a2a;color:#34d399}
+.tag-distinct{background:#2a2a1a;color:#facc15}
+.tag-subquery{background:#1a1a2a;color:#818cf8}
+.tag-string{background:#1a2a1a;color:#86efac}
+.tag-date{background:#2a1a2a;color:#e879f9}
+.toggle-btn{margin-left:auto;flex-shrink:0;background:none;border:1px solid #2a2a4a;color:#8888aa;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.toggle-btn:hover{background:#2a2a4a;color:#e2e0f0}
+.q-answer{display:none;border-top:1px solid #2a2a4a}
+.q-answer.open{display:block}
+.q-answer pre{margin:0;padding:18px 20px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.75;overflow-x:auto;background:#0f0f13;color:#c9c7e0}
+.kw{color:#c084fc;font-weight:600}
+.str{color:#4ade80}
+.num{color:#fb923c}
+.cmt{color:#555580;font-style:italic}
+.fn{color:#60a5fa}
+.tbl{color:#f9a8d4}
+.col{color:#e2e0f0}
+.alias{color:#fbbf24}
+@media(max-width:640px){header{padding:28px 20px 24px}.controls{padding:0 20px}main{padding:20px 20px 0}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>SQL <span>Practice</span> Questions</h1>
+      <div class="subtitle">Based on your 16-table dataset — employees, customers, orders, jobs & more</div>
+    </div>
+    <div class="stats">
+      <div class="stat">100 Questions</div>
+      <div class="stat">16 Tables</div>
+      <div class="stat">WHERE · JOIN · CTE · UNION · AGG</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <button class="filter-btn active" onclick="filterAll()">All</button>
+  <button class="filter-btn" onclick="filterTag('where')">WHERE</button>
+  <button class="filter-btn" onclick="filterTag('agg')">Aggregates</button>
+  <button class="filter-btn" onclick="filterTag('join')">JOINs</button>
+  <button class="filter-btn" onclick="filterTag('cte')">CTE</button>
+  <button class="filter-btn" onclick="filterTag('union')">UNION</button>
+  <button class="filter-btn" onclick="filterTag('distinct')">DISTINCT</button>
+  <button class="filter-btn" onclick="filterTag('subquery')">Subquery</button>
+</div>
+
+<main id="questions"></main>
+
+<script>
+var Q=[
+// ─── WHERE ───────────────────────────────────────────────────────────────────
+{n:1,t:"List all employees in the Sales department.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">*</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">WHERE</span>  <span class="col">department</span> = <span class="str">'Sales'</span>;`},
+
+{n:2,t:"Find all customers from New York.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">city</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">WHERE</span>  <span class="col">city</span> = <span class="str">'New York'</span>;`},
+
+{n:3,t:"Show all products with a price greater than 50.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">product_name</span>, <span class="col">price</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">WHERE</span>  <span class="col">price</span> > <span class="num">50</span>;`},
+
+{n:4,t:"Find all active job postings.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">title</span>, <span class="col">location</span>, <span class="col">job_type</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>
+<span class="kw">WHERE</span>  <span class="col">is_active</span> = <span class="num">1</span>;`},
+
+{n:5,t:"Get all orders with status 'Shipped'.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">*</span>
+<span class="kw">FROM</span>   <span class="tbl">order</span>
+<span class="kw">WHERE</span>  <span class="col">status</span> = <span class="str">'Shipped'</span>;`},
+
+{n:6,t:"Find employees with a salary between 70,000 and 100,000.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">WHERE</span>  <span class="col">salary</span> <span class="kw">BETWEEN</span> <span class="num">70000</span> <span class="kw">AND</span> <span class="num">100000</span>;`},
+
+{n:7,t:"List candidates with more than 4 years of experience.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">years_experience</span>, <span class="col">skills</span>
+<span class="kw">FROM</span>   <span class="tbl">candidate</span>
+<span class="kw">WHERE</span>  <span class="col">years_experience</span> > <span class="num">4</span>;`},
+
+{n:8,t:"Show stores that are currently active.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">store_name</span>, <span class="col">city</span>, <span class="col">state</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span>
+<span class="kw">WHERE</span>  <span class="col">is_active</span> = <span class="str">'TRUE'</span>;`},
+
+{n:9,t:"Find applications with status 'Interview'.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">application_id</span>, <span class="col">job_id</span>, <span class="col">candidate_id</span>
+<span class="kw">FROM</span>   <span class="tbl">applications</span>
+<span class="kw">WHERE</span>  <span class="col">status</span> = <span class="str">'Interview'</span>;`},
+
+{n:10,t:"Get all full-time employees hired after 2020-01-01.",tags:["where","select"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">hire_date</span>
+<span class="kw">FROM</span>   <span class="tbl">full_time_employees</span>
+<span class="kw">WHERE</span>  <span class="col">hire_date</span> > <span class="str">'2020-01-01'</span>;`},
+
+// ─── DISTINCT ────────────────────────────────────────────────────────────────
+{n:11,t:"List all unique departments in the employee2 table.",tags:["distinct"],
+a:`<span class="kw">SELECT DISTINCT</span> <span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:12,t:"Show all unique cities customers are from.",tags:["distinct"],
+a:`<span class="kw">SELECT DISTINCT</span> <span class="col">city</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>;`},
+
+{n:13,t:"Get all unique job types in the jobs table.",tags:["distinct"],
+a:`<span class="kw">SELECT DISTINCT</span> <span class="col">job_type</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>;`},
+
+{n:14,t:"List all unique product categories.",tags:["distinct"],
+a:`<span class="kw">SELECT DISTINCT</span> <span class="col">category</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>;`},
+
+{n:15,t:"Find all unique statuses in the applications table.",tags:["distinct"],
+a:`<span class="kw">SELECT DISTINCT</span> <span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">applications</span>;`},
+
+// ─── COUNT ───────────────────────────────────────────────────────────────────
+{n:16,t:"Count the total number of employees.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">total_employees</span>
+<span class="kw">FROM</span>   <span class="tbl">employees</span>;`},
+
+{n:17,t:"Count the number of applications per job.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">total_applications</span>
+<span class="kw">FROM</span>   <span class="tbl">applications</span>
+<span class="kw">GROUP BY</span> <span class="col">job_id</span>;`},
+
+{n:18,t:"Count customers per state.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">state</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">customer_count</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">GROUP BY</span> <span class="col">state</span>
+<span class="kw">ORDER BY</span> <span class="alias">customer_count</span> <span class="kw">DESC</span>;`},
+
+{n:19,t:"How many products are in each category?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">category</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">num_products</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">GROUP BY</span> <span class="col">category</span>;`},
+
+{n:20,t:"Count orders per status.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">status</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">order_count</span>
+<span class="kw">FROM</span>   <span class="tbl">order</span>
+<span class="kw">GROUP BY</span> <span class="col">status</span>;`},
+
+// ─── MIN / MAX ────────────────────────────────────────────────────────────────
+{n:21,t:"Find the highest salary in the employee2 table.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">highest_salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:22,t:"Find the lowest salary in the employee2 table.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">MIN</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">lowest_salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:23,t:"What is the most expensive product?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">product_name</span>, <span class="fn">MAX</span>(<span class="col">price</span>) <span class="kw">AS</span> <span class="alias">max_price</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>;`},
+
+{n:24,t:"Find the earliest hire date in full_time_employees.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">MIN</span>(<span class="col">hire_date</span>) <span class="kw">AS</span> <span class="alias">earliest_hire</span>
+<span class="kw">FROM</span>   <span class="tbl">full_time_employees</span>;`},
+
+{n:25,t:"Find the minimum and maximum job salary ranges.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="fn">MIN</span>(<span class="col">salary_min</span>) <span class="kw">AS</span> <span class="alias">lowest_min</span>,
+  <span class="fn">MAX</span>(<span class="col">salary_max</span>) <span class="kw">AS</span> <span class="alias">highest_max</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>;`},
+
+{n:26,t:"Find the max budget across all departments.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="col">budget</span>) <span class="kw">AS</span> <span class="alias">highest_budget</span>
+<span class="kw">FROM</span>   <span class="tbl">departments</span>;`},
+
+{n:27,t:"Which customer has the highest total_spent?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="fn">MAX</span>(<span class="col">total_spent</span>) <span class="kw">AS</span> <span class="alias">top_spend</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>;`},
+
+// ─── AVG ─────────────────────────────────────────────────────────────────────
+{n:28,t:"What is the average salary by department in employee2?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">department</span>,
+       <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">avg_salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">GROUP BY</span> <span class="col">department</span>;`},
+
+{n:29,t:"What is the average price per product category?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">category</span>,
+       <span class="fn">AVG</span>(<span class="col">price</span>) <span class="kw">AS</span> <span class="alias">avg_price</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">GROUP BY</span> <span class="col">category</span>;`},
+
+{n:30,t:"What is the average hourly rate of part-time employees?",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">hourly_rate</span>) <span class="kw">AS</span> <span class="alias">avg_hourly_rate</span>
+<span class="kw">FROM</span>   <span class="tbl">part_time_employees</span>;`},
+
+{n:31,t:"Average total_spent per city for customers.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">city</span>,
+       <span class="fn">AVG</span>(<span class="col">total_spent</span>) <span class="kw">AS</span> <span class="alias">avg_spent</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">GROUP BY</span> <span class="col">city</span>
+<span class="kw">ORDER BY</span> <span class="alias">avg_spent</span> <span class="kw">DESC</span>;`},
+
+{n:32,t:"Average sales and advertising spend per region.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">Region</span>,
+       <span class="fn">AVG</span>(<span class="col">Sales</span>)       <span class="kw">AS</span> <span class="alias">avg_sales</span>,
+       <span class="fn">AVG</span>(<span class="col">Advertising</span>) <span class="kw">AS</span> <span class="alias">avg_advertising</span>
+<span class="kw">FROM</span>   <span class="tbl">sales2</span>
+<span class="kw">GROUP BY</span> <span class="col">Region</span>;`},
+
+// ─── ALIAS ───────────────────────────────────────────────────────────────────
+{n:33,t:"Display employee full name as a single alias 'full_name'.",tags:["select"],
+a:`<span class="kw">SELECT</span>
+  <span class="fn">CONCAT</span>(<span class="col">first_name</span>, <span class="str">' '</span>, <span class="col">last_name</span>) <span class="kw">AS</span> <span class="alias">full_name</span>,
+  <span class="col">department</span>,
+  <span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:34,t:"Show job title and company_id using descriptive aliases.",tags:["select"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">title</span>      <span class="kw">AS</span> <span class="alias">job_title</span>,
+  <span class="col">company_id</span> <span class="kw">AS</span> <span class="alias">employer_id</span>,
+  <span class="col">salary_min</span> <span class="kw">AS</span> <span class="alias">min_pay</span>,
+  <span class="col">salary_max</span> <span class="kw">AS</span> <span class="alias">max_pay</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>;`},
+
+{n:35,t:"Alias the stores table as 's' and select store_name and city.",tags:["select"],
+a:`<span class="kw">SELECT</span> <span class="alias">s</span>.<span class="col">store_name</span>, <span class="alias">s</span>.<span class="col">city</span>, <span class="alias">s</span>.<span class="col">state</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span> <span class="kw">AS</span> <span class="alias">s</span>
+<span class="kw">WHERE</span>  <span class="alias">s</span>.<span class="col">is_active</span> = <span class="str">'TRUE'</span>;`},
+
+// ─── INNER JOIN ───────────────────────────────────────────────────────────────
+{n:36,t:"Join jobs and applications to see application counts per job title.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">j</span>.<span class="col">title</span>, <span class="fn">COUNT</span>(<span class="alias">a</span>.<span class="col">application_id</span>) <span class="kw">AS</span> <span class="alias">applications</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span> <span class="alias">j</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">applications</span> <span class="alias">a</span> <span class="kw">ON</span> <span class="alias">j</span>.<span class="col">job_id</span> = <span class="alias">a</span>.<span class="col">job_id</span>
+<span class="kw">GROUP BY</span> <span class="alias">j</span>.<span class="col">title</span>;`},
+
+{n:37,t:"Join applications and candidates to see who applied for each job.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">a</span>.<span class="col">application_id</span>, <span class="alias">c</span>.<span class="col">name</span>,
+       <span class="alias">a</span>.<span class="col">job_id</span>, <span class="alias">a</span>.<span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">applications</span> <span class="alias">a</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">candidate</span> <span class="alias">c</span> <span class="kw">ON</span> <span class="alias">a</span>.<span class="col">candidate_id</span> = <span class="alias">c</span>.<span class="col">candidate_id</span>;`},
+
+{n:38,t:"Join orders with products to show product name per order.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">o</span>.<span class="col">order_id</span>, <span class="alias">p</span>.<span class="col">product_name</span>,
+       <span class="alias">o</span>.<span class="col">quantity</span>, <span class="alias">o</span>.<span class="col">unit_price</span>
+<span class="kw">FROM</span>   <span class="tbl">order</span> <span class="alias">o</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">products</span> <span class="alias">p</span> <span class="kw">ON</span> <span class="alias">o</span>.<span class="col">product_id</span> = <span class="alias">p</span>.<span class="col">product_id</span>;`},
+
+{n:39,t:"Join order_items with stores to see sales by store.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">s</span>.<span class="col">store_name</span>,
+       <span class="fn">SUM</span>(<span class="alias">oi</span>.<span class="col">line_total</span>) <span class="kw">AS</span> <span class="alias">total_sales</span>
+<span class="kw">FROM</span>   <span class="tbl">order_items</span> <span class="alias">oi</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">stores</span> <span class="alias">s</span> <span class="kw">ON</span> <span class="alias">oi</span>.<span class="col">store_id</span> = <span class="alias">s</span>.<span class="col">store_id</span>
+<span class="kw">GROUP BY</span> <span class="alias">s</span>.<span class="col">store_name</span>;`},
+
+{n:40,t:"Join employees with departments to show each employee's department name.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>,
+       <span class="alias">d</span>.<span class="col">dept_name</span>, <span class="alias">d</span>.<span class="col">location</span>
+<span class="kw">FROM</span>   <span class="tbl">employees</span> <span class="alias">e</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">departments</span> <span class="alias">d</span> <span class="kw">ON</span> <span class="alias">e</span>.<span class="col">department_id</span> = <span class="alias">d</span>.<span class="col">dept_id</span>;`},
+
+{n:41,t:"Join jobs and companies (employeee) to show job title with company name.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">j</span>.<span class="col">title</span>, <span class="alias">c</span>.<span class="col">company_name</span>,
+       <span class="alias">j</span>.<span class="col">salary_min</span>, <span class="alias">j</span>.<span class="col">salary_max</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span> <span class="alias">j</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">employeee</span> <span class="alias">c</span> <span class="kw">ON</span> <span class="alias">j</span>.<span class="col">company_id</span> = <span class="alias">c</span>.<span class="col">company_id</span>;`},
+
+// ─── LEFT JOIN ────────────────────────────────────────────────────────────────
+{n:42,t:"Show all jobs and their applications (including jobs with no applications).",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">j</span>.<span class="col">title</span>, <span class="alias">a</span>.<span class="col">application_id</span>, <span class="alias">a</span>.<span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span> <span class="alias">j</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">applications</span> <span class="alias">a</span> <span class="kw">ON</span> <span class="alias">j</span>.<span class="col">job_id</span> = <span class="alias">a</span>.<span class="col">job_id</span>;`},
+
+{n:43,t:"Show all candidates even if they haven't applied.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">c</span>.<span class="col">name</span>, <span class="alias">a</span>.<span class="col">application_id</span>, <span class="alias">a</span>.<span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">candidate</span> <span class="alias">c</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">applications</span> <span class="alias">a</span> <span class="kw">ON</span> <span class="alias">c</span>.<span class="col">candidate_id</span> = <span class="alias">a</span>.<span class="col">candidate_id</span>;`},
+
+{n:44,t:"Show all products and their order_items (including products never ordered).",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">p</span>.<span class="col">product_name</span>, <span class="alias">oi</span>.<span class="col">order_id</span>, <span class="alias">oi</span>.<span class="col">quantity</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span> <span class="alias">p</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">order_items</span> <span class="alias">oi</span> <span class="kw">ON</span> <span class="alias">p</span>.<span class="col">product_id</span> = <span class="alias">oi</span>.<span class="col">product_id</span>;`},
+
+{n:45,t:"Show all departments even if no employees are assigned.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">d</span>.<span class="col">dept_name</span>, <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>
+<span class="kw">FROM</span>   <span class="tbl">departments</span> <span class="alias">d</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">employees</span> <span class="alias">e</span> <span class="kw">ON</span> <span class="alias">d</span>.<span class="col">dept_id</span> = <span class="alias">e</span>.<span class="col">department_id</span>;`},
+
+// ─── RIGHT JOIN ───────────────────────────────────────────────────────────────
+{n:46,t:"Show all applications and match with job info (RIGHT JOIN).",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">j</span>.<span class="col">title</span>, <span class="alias">a</span>.<span class="col">application_id</span>, <span class="alias">a</span>.<span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span> <span class="alias">j</span>
+<span class="kw">RIGHT JOIN</span> <span class="tbl">applications</span> <span class="alias">a</span> <span class="kw">ON</span> <span class="alias">j</span>.<span class="col">job_id</span> = <span class="alias">a</span>.<span class="col">job_id</span>;`},
+
+{n:47,t:"Show all order_items and their products using RIGHT JOIN.",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">p</span>.<span class="col">product_name</span>, <span class="alias">oi</span>.<span class="col">order_id</span>, <span class="alias">oi</span>.<span class="col">line_total</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span> <span class="alias">p</span>
+<span class="kw">RIGHT JOIN</span> <span class="tbl">order_items</span> <span class="alias">oi</span> <span class="kw">ON</span> <span class="alias">p</span>.<span class="col">product_id</span> = <span class="alias">oi</span>.<span class="col">product_id</span>;`},
+
+// ─── FULL OUTER JOIN ──────────────────────────────────────────────────────────
+{n:48,t:"Show all employees and departments (FULL OUTER JOIN).",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>, <span class="alias">d</span>.<span class="col">dept_name</span>
+<span class="kw">FROM</span>   <span class="tbl">employees</span> <span class="alias">e</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">departments</span> <span class="alias">d</span> <span class="kw">ON</span> <span class="alias">e</span>.<span class="col">department_id</span> = <span class="alias">d</span>.<span class="col">dept_id</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>, <span class="alias">d</span>.<span class="col">dept_name</span>
+<span class="kw">FROM</span>   <span class="tbl">employees</span> <span class="alias">e</span>
+<span class="kw">RIGHT JOIN</span> <span class="tbl">departments</span> <span class="alias">d</span> <span class="kw">ON</span> <span class="alias">e</span>.<span class="col">department_id</span> = <span class="alias">d</span>.<span class="col">dept_id</span>;`},
+
+// ─── SELF JOIN ────────────────────────────────────────────────────────────────
+{n:49,t:"Find pairs of employees in the same department (SELF JOIN).",tags:["join"],
+a:`<span class="kw">SELECT</span>
+  <span class="alias">e1</span>.<span class="col">first_name</span> <span class="kw">AS</span> <span class="alias">employee1</span>,
+  <span class="alias">e2</span>.<span class="col">first_name</span> <span class="kw">AS</span> <span class="alias">employee2</span>,
+  <span class="alias">e1</span>.<span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span> <span class="alias">e1</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">employee2</span> <span class="alias">e2</span>
+  <span class="kw">ON</span> <span class="alias">e1</span>.<span class="col">department</span> = <span class="alias">e2</span>.<span class="col">department</span>
+  <span class="kw">AND</span> <span class="alias">e1</span>.<span class="col">employee_id</span> < <span class="alias">e2</span>.<span class="col">employee_id</span>;`},
+
+// ─── CROSS JOIN ───────────────────────────────────────────────────────────────
+{n:50,t:"Generate all combinations of products and stores (CROSS JOIN).",tags:["join"],
+a:`<span class="kw">SELECT</span> <span class="alias">p</span>.<span class="col">product_name</span>, <span class="alias">s</span>.<span class="col">store_name</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span> <span class="alias">p</span>
+<span class="kw">CROSS JOIN</span> <span class="tbl">stores</span> <span class="alias">s</span>;`},
+
+// ─── 3-TABLE JOIN ─────────────────────────────────────────────────────────────
+{n:51,t:"Join jobs, applications, and candidates to get full application detail.",tags:["join"],
+a:`<span class="kw">SELECT</span>
+  <span class="alias">j</span>.<span class="col">title</span>            <span class="kw">AS</span> <span class="alias">job_title</span>,
+  <span class="alias">c</span>.<span class="col">name</span>             <span class="kw">AS</span> <span class="alias">candidate_name</span>,
+  <span class="alias">a</span>.<span class="col">application_date</span>,
+  <span class="alias">a</span>.<span class="col">status</span>
+<span class="kw">FROM</span>   <span class="tbl">applications</span> <span class="alias">a</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">jobs</span>      <span class="alias">j</span> <span class="kw">ON</span> <span class="alias">a</span>.<span class="col">job_id</span>       = <span class="alias">j</span>.<span class="col">job_id</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">candidate</span> <span class="alias">c</span> <span class="kw">ON</span> <span class="alias">a</span>.<span class="col">candidate_id</span> = <span class="alias">c</span>.<span class="col">candidate_id</span>;`},
+
+{n:52,t:"Join order_items, products, and stores to see item details per store.",tags:["join"],
+a:`<span class="kw">SELECT</span>
+  <span class="alias">s</span>.<span class="col">store_name</span>,
+  <span class="alias">p</span>.<span class="col">product_name</span>,
+  <span class="alias">oi</span>.<span class="col">quantity</span>,
+  <span class="alias">oi</span>.<span class="col">line_total</span>
+<span class="kw">FROM</span>   <span class="tbl">order_items</span> <span class="alias">oi</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">products</span> <span class="alias">p</span> <span class="kw">ON</span> <span class="alias">oi</span>.<span class="col">product_id</span> = <span class="alias">p</span>.<span class="col">product_id</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">stores</span>   <span class="alias">s</span> <span class="kw">ON</span> <span class="alias">oi</span>.<span class="col">store_id</span>   = <span class="alias">s</span>.<span class="col">store_id</span>;`},
+
+// ─── UNION ───────────────────────────────────────────────────────────────────
+{n:53,t:"Combine full-time and part-time employee names into one list (UNION).",tags:["union"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="str">'Full-Time'</span> <span class="kw">AS</span> <span class="alias">emp_type</span>
+<span class="kw">FROM</span>   <span class="tbl">full_time_employees</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="str">'Part-Time'</span> <span class="kw">AS</span> <span class="alias">emp_type</span>
+<span class="kw">FROM</span>   <span class="tbl">part_time_employees</span>;`},
+
+{n:54,t:"List all department names from both employees and departments tables (UNION).",tags:["union"],
+a:`<span class="kw">SELECT</span> <span class="kw">DISTINCT</span> <span class="col">department</span> <span class="kw">AS</span> <span class="alias">dept</span> <span class="kw">FROM</span> <span class="tbl">full_time_employees</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> <span class="kw">DISTINCT</span> <span class="col">department</span>             <span class="kw">FROM</span> <span class="tbl">part_time_employees</span>;`},
+
+{n:55,t:"Combine full-time and part-time lists including duplicates (UNION ALL).",tags:["union"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">full_time_employees</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">part_time_employees</span>;`},
+
+{n:56,t:"Find employees that appear in BOTH full_time and employee2 (INTERSECT).",tags:["union"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span> <span class="kw">FROM</span> <span class="tbl">full_time_employees</span>
+<span class="kw">INTERSECT</span>
+<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span> <span class="kw">FROM</span> <span class="tbl">employee2</span>;`},
+
+{n:57,t:"Full-time employees NOT in part_time list (EXCEPT).",tags:["union"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span> <span class="kw">FROM</span> <span class="tbl">full_time_employees</span>
+<span class="kw">EXCEPT</span>
+<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span> <span class="kw">FROM</span> <span class="tbl">part_time_employees</span>;`},
+
+// ─── CTE ─────────────────────────────────────────────────────────────────────
+{n:58,t:"Use a CTE to find employees earning above the average salary.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">avg_salary</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">avg_sal</span>
+  <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+)
+<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>, <span class="alias">avg_salary</span>
+<span class="kw">WHERE</span>  <span class="col">salary</span> > <span class="alias">avg_sal</span>;`},
+
+{n:59,t:"CTE to rank departments by total salary expenditure.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">dept_spend</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">department</span>,
+         <span class="fn">SUM</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">total_salary</span>
+  <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+  <span class="kw">GROUP BY</span> <span class="col">department</span>
+)
+<span class="kw">SELECT</span> <span class="col">department</span>, <span class="alias">total_salary</span>
+<span class="kw">FROM</span>   <span class="alias">dept_spend</span>
+<span class="kw">ORDER BY</span> <span class="alias">total_salary</span> <span class="kw">DESC</span>;`},
+
+{n:60,t:"CTE to find jobs with the highest number of applications.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">app_count</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">total</span>
+  <span class="kw">FROM</span>   <span class="tbl">applications</span>
+  <span class="kw">GROUP BY</span> <span class="col">job_id</span>
+)
+<span class="kw">SELECT</span> <span class="alias">j</span>.<span class="col">title</span>, <span class="alias">ac</span>.<span class="alias">total</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span> <span class="alias">j</span>
+<span class="kw">INNER JOIN</span> <span class="alias">app_count</span> <span class="alias">ac</span> <span class="kw">ON</span> <span class="alias">j</span>.<span class="col">job_id</span> = <span class="alias">ac</span>.<span class="col">job_id</span>
+<span class="kw">ORDER BY</span> <span class="alias">ac</span>.<span class="alias">total</span> <span class="kw">DESC</span>;`},
+
+{n:61,t:"CTE to list products with below-average stock.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">avg_stock</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">stock</span>) <span class="kw">AS</span> <span class="alias">avg_s</span>
+  <span class="kw">FROM</span>   <span class="tbl">products</span>
+)
+<span class="kw">SELECT</span> <span class="col">product_name</span>, <span class="col">stock</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>, <span class="alias">avg_stock</span>
+<span class="kw">WHERE</span>  <span class="col">stock</span> < <span class="alias">avg_s</span>;`},
+
+{n:62,t:"Multiple CTEs: get top-earning department and its employees.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">dept_totals</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">department</span>, <span class="fn">SUM</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">total</span>
+  <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+  <span class="kw">GROUP BY</span> <span class="col">department</span>
+),
+<span class="alias">top_dept</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">department</span>
+  <span class="kw">FROM</span>   <span class="alias">dept_totals</span>
+  <span class="kw">ORDER BY</span> <span class="alias">total</span> <span class="kw">DESC</span>
+  <span class="kw">LIMIT</span> <span class="num">1</span>
+)
+<span class="kw">SELECT</span> <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>, <span class="alias">e</span>.<span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span> <span class="alias">e</span>
+<span class="kw">INNER JOIN</span> <span class="alias">top_dept</span> <span class="alias">td</span> <span class="kw">ON</span> <span class="alias">e</span>.<span class="col">department</span> = <span class="alias">td</span>.<span class="col">department</span>;`},
+
+{n:63,t:"CTE to calculate total revenue per store.",tags:["cte"],
+a:`<span class="kw">WITH</span> <span class="alias">store_revenue</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">store_id</span>,
+         <span class="fn">SUM</span>(<span class="col">line_total</span>) <span class="kw">AS</span> <span class="alias">revenue</span>
+  <span class="kw">FROM</span>   <span class="tbl">order_items</span>
+  <span class="kw">GROUP BY</span> <span class="col">store_id</span>
+)
+<span class="kw">SELECT</span> <span class="alias">s</span>.<span class="col">store_name</span>, <span class="alias">sr</span>.<span class="alias">revenue</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span> <span class="alias">s</span>
+<span class="kw">INNER JOIN</span> <span class="alias">store_revenue</span> <span class="alias">sr</span> <span class="kw">ON</span> <span class="alias">s</span>.<span class="col">store_id</span> = <span class="alias">sr</span>.<span class="col">store_id</span>
+<span class="kw">ORDER BY</span> <span class="alias">sr</span>.<span class="alias">revenue</span> <span class="kw">DESC</span>;`},
+
+// ─── SUBQUERY ────────────────────────────────────────────────────────────────
+{n:64,t:"Find employees who earn more than the average salary using a subquery.",tags:["subquery"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">WHERE</span>  <span class="col">salary</span> > (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>)
+  <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+);`},
+
+{n:65,t:"Find products never ordered (using NOT IN subquery).",tags:["subquery"],
+a:`<span class="kw">SELECT</span> <span class="col">product_name</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">WHERE</span>  <span class="col">product_id</span> <span class="kw">NOT IN</span> (
+  <span class="kw">SELECT DISTINCT</span> <span class="col">product_id</span>
+  <span class="kw">FROM</span>   <span class="tbl">order_items</span>
+);`},
+
+{n:66,t:"Find candidates who applied for more than one job.",tags:["subquery"],
+a:`<span class="kw">SELECT</span> <span class="col">name</span>
+<span class="kw">FROM</span>   <span class="tbl">candidate</span>
+<span class="kw">WHERE</span>  <span class="col">candidate_id</span> <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> <span class="col">candidate_id</span>
+  <span class="kw">FROM</span>   <span class="tbl">applications</span>
+  <span class="kw">GROUP BY</span> <span class="col">candidate_id</span>
+  <span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="num">1</span>
+);`},
+
+{n:67,t:"Show customers who have spent more than the overall average.",tags:["subquery"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">total_spent</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">WHERE</span>  <span class="col">total_spent</span> > (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">total_spent</span>) <span class="kw">FROM</span> <span class="tbl">customers</span>
+);`},
+
+{n:68,t:"Find the department with the maximum average salary (subquery).",tags:["subquery"],
+a:`<span class="kw">SELECT</span> <span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">GROUP BY</span> <span class="col">department</span>
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(<span class="col">salary</span>) = (
+  <span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="alias">avg_s</span>)
+  <span class="kw">FROM</span> (
+    <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">avg_s</span>
+    <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+    <span class="kw">GROUP BY</span> <span class="col">department</span>
+  ) <span class="alias">sub</span>
+);`},
+
+// ─── HAVING ──────────────────────────────────────────────────────────────────
+{n:69,t:"Find departments with more than 2 employees.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">department</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">headcount</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">GROUP BY</span> <span class="col">department</span>
+<span class="kw">HAVING</span>   <span class="fn">COUNT</span>(*) > <span class="num">2</span>;`},
+
+{n:70,t:"Find product categories where average price exceeds 50.",tags:["agg"],
+a:`<span class="kw">SELECT</span> <span class="col">category</span>, <span class="fn">AVG</span>(<span class="col">price</span>) <span class="kw">AS</span> <span class="alias">avg_price</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">GROUP BY</span> <span class="col">category</span>
+<span class="kw">HAVING</span>   <span class="fn">AVG</span>(<span class="col">price</span>) > <span class="num">50</span>;`},
+
+{n:71,t:"Jobs where salary range exceeds 40,000.",tags:["agg","where"],
+a:`<span class="kw">SELECT</span> <span class="col">title</span>, (<span class="col">salary_max</span> - <span class="col">salary_min</span>) <span class="kw">AS</span> <span class="alias">salary_range</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>
+<span class="kw">WHERE</span>  (<span class="col">salary_max</span> - <span class="col">salary_min</span>) > <span class="num">40000</span>;`},
+
+// ─── STRING FUNCTIONS ────────────────────────────────────────────────────────
+{n:72,t:"Show all candidates whose name starts with 'J'.",tags:["string","where"],
+a:`<span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">email</span>
+<span class="kw">FROM</span>   <span class="tbl">candidate</span>
+<span class="kw">WHERE</span>  <span class="col">name</span> <span class="kw">LIKE</span> <span class="str">'J%'</span>;`},
+
+{n:73,t:"Find products whose name contains 'Wireless'.",tags:["string","where"],
+a:`<span class="kw">SELECT</span> <span class="col">product_name</span>, <span class="col">price</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">WHERE</span>  <span class="col">product_name</span> <span class="kw">LIKE</span> <span class="str">'%Wireless%'</span>;`},
+
+{n:74,t:"Show employee full names in uppercase.",tags:["string"],
+a:`<span class="kw">SELECT</span>
+  <span class="fn">UPPER</span>(<span class="fn">CONCAT</span>(<span class="col">first_name</span>, <span class="str">' '</span>, <span class="col">last_name</span>)) <span class="kw">AS</span> <span class="alias">full_name</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:75,t:"Find the character length of each product name.",tags:["string"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">product_name</span>,
+  <span class="fn">LENGTH</span>(<span class="col">product_name</span>) <span class="kw">AS</span> <span class="alias">name_length</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>
+<span class="kw">ORDER BY</span> <span class="alias">name_length</span> <span class="kw">DESC</span>;`},
+
+// ─── DATE FUNCTIONS ───────────────────────────────────────────────────────────
+{n:76,t:"Extract the year from each employee's hire date.",tags:["date"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">first_name</span>, <span class="col">last_name</span>,
+  <span class="fn">YEAR</span>(<span class="col">hire_date</span>) <span class="kw">AS</span> <span class="alias">hire_year</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:77,t:"Find customers who joined in 2022.",tags:["date","where"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">join_date</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">WHERE</span>  <span class="fn">YEAR</span>(<span class="col">join_date</span>) = <span class="num">2022</span>;`},
+
+{n:78,t:"How many months ago was each store opened?",tags:["date"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">store_name</span>,
+  <span class="fn">TIMESTAMPDIFF</span>(<span class="kw">MONTH</span>, <span class="col">opening_date</span>, <span class="fn">CURDATE</span>()) <span class="kw">AS</span> <span class="alias">months_open</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span>;`},
+
+// ─── WINDOW FUNCTIONS ─────────────────────────────────────────────────────────
+{n:79,t:"Rank employees by salary within each department.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">department</span>, <span class="col">salary</span>,
+  <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+    <span class="kw">PARTITION BY</span> <span class="col">department</span>
+    <span class="kw">ORDER BY</span> <span class="col">salary</span> <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> <span class="alias">salary_rank</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:80,t:"Add a running total of order line_totals ordered by order_item_id.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">order_item_id</span>, <span class="col">line_total</span>,
+  <span class="fn">SUM</span>(<span class="col">line_total</span>) <span class="kw">OVER</span> (
+    <span class="kw">ORDER BY</span> <span class="col">order_item_id</span>
+  ) <span class="kw">AS</span> <span class="alias">running_total</span>
+<span class="kw">FROM</span>   <span class="tbl">order_items</span>;`},
+
+{n:81,t:"Show each product's price and the row number within its category.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">product_name</span>, <span class="col">category</span>, <span class="col">price</span>,
+  <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+    <span class="kw">PARTITION BY</span> <span class="col">category</span>
+    <span class="kw">ORDER BY</span> <span class="col">price</span> <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> <span class="alias">row_num</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>;`},
+
+// ─── CASE ────────────────────────────────────────────────────────────────────
+{n:82,t:"Label employees as 'High', 'Mid', or 'Low' earners using CASE.",tags:["select"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">salary</span>,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> <span class="col">salary</span> >= <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'High'</span>
+    <span class="kw">WHEN</span> <span class="col">salary</span> >= <span class="num">75000</span>  <span class="kw">THEN</span> <span class="str">'Mid'</span>
+    <span class="kw">ELSE</span>                        <span class="str">'Low'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> <span class="alias">salary_band</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:83,t:"Classify products as 'Expensive' (>100), 'Moderate' (50-100), or 'Affordable'.",tags:["select"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">product_name</span>, <span class="col">price</span>,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> <span class="col">price</span> > <span class="num">100</span> <span class="kw">THEN</span> <span class="str">'Expensive'</span>
+    <span class="kw">WHEN</span> <span class="col">price</span> >= <span class="num">50</span> <span class="kw">THEN</span> <span class="str">'Moderate'</span>
+    <span class="kw">ELSE</span>                  <span class="str">'Affordable'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> <span class="alias">price_tier</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span>;`},
+
+// ─── GROUP BY + MULTIPLE AGGS ─────────────────────────────────────────────────
+{n:84,t:"Per department: count, min, max, and average salary.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">department</span>,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">headcount</span>,
+  <span class="fn">MIN</span>(<span class="col">salary</span>)  <span class="kw">AS</span> <span class="alias">min_salary</span>,
+  <span class="fn">MAX</span>(<span class="col">salary</span>)  <span class="kw">AS</span> <span class="alias">max_salary</span>,
+  <span class="fn">AVG</span>(<span class="col">salary</span>)  <span class="kw">AS</span> <span class="alias">avg_salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">GROUP BY</span> <span class="col">department</span>;`},
+
+{n:85,t:"Per store: total orders, total discount, and net revenue.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">store_id</span>,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="alias">order_lines</span>,
+  <span class="fn">SUM</span>(<span class="col">discount</span>)  <span class="kw">AS</span> <span class="alias">total_discount</span>,
+  <span class="fn">SUM</span>(<span class="col">line_total</span>) <span class="kw">AS</span> <span class="alias">net_revenue</span>
+<span class="kw">FROM</span>   <span class="tbl">order_items</span>
+<span class="kw">GROUP BY</span> <span class="col">store_id</span>;`},
+
+{n:86,t:"Per region in sales2: total sales, max sales, min advertising.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">Region</span>,
+  <span class="fn">SUM</span>(<span class="col">Sales</span>)       <span class="kw">AS</span> <span class="alias">total_sales</span>,
+  <span class="fn">MAX</span>(<span class="col">Sales</span>)       <span class="kw">AS</span> <span class="alias">peak_sales</span>,
+  <span class="fn">MIN</span>(<span class="col">Advertising</span>) <span class="kw">AS</span> <span class="alias">min_ad_spend</span>
+<span class="kw">FROM</span>   <span class="tbl">sales2</span>
+<span class="kw">GROUP BY</span> <span class="col">Region</span>;`},
+
+// ─── ORDER BY / LIMIT / OFFSET ────────────────────────────────────────────────
+{n:87,t:"Top 5 highest-paid employees.",tags:["select"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">salary</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">ORDER BY</span> <span class="col">salary</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>  <span class="num">5</span>;`},
+
+{n:88,t:"Show the 3 most recently joined customers.",tags:["date","select"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">join_date</span>
+<span class="kw">FROM</span>   <span class="tbl">customers</span>
+<span class="kw">ORDER BY</span> <span class="col">join_date</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>  <span class="num">3</span>;`},
+
+{n:89,t:"Get orders 6 to 10 (OFFSET pagination).",tags:["select"],
+a:`<span class="kw">SELECT</span> <span class="col">*</span>
+<span class="kw">FROM</span>   <span class="tbl">order</span>
+<span class="kw">ORDER BY</span> <span class="col">order_id</span>
+<span class="kw">LIMIT</span>  <span class="num">5</span> <span class="kw">OFFSET</span> <span class="num">5</span>;`},
+
+// ─── NULL HANDLING ────────────────────────────────────────────────────────────
+{n:90,t:"Show employees whose department is NULL.",tags:["where"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>
+<span class="kw">WHERE</span>  <span class="col">department</span> <span class="kw">IS NULL</span>;`},
+
+{n:91,t:"Replace NULL department with 'Unassigned' using COALESCE.",tags:["select"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">first_name</span>, <span class="col">last_name</span>,
+  <span class="fn">COALESCE</span>(<span class="col">department</span>, <span class="str">'Unassigned'</span>) <span class="kw">AS</span> <span class="alias">dept</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+// ─── ADVANCED / MIXED ─────────────────────────────────────────────────────────
+{n:92,t:"Find the total weekly cost of all part-time employees.",tags:["agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="fn">SUM</span>(<span class="col">hourly_rate</span> * <span class="col">weekly_hours</span>) <span class="kw">AS</span> <span class="alias">total_weekly_cost</span>
+<span class="kw">FROM</span>   <span class="tbl">part_time_employees</span>;`},
+
+{n:93,t:"CTE: compare each employee's salary to their department's average.",tags:["cte","agg"],
+a:`<span class="kw">WITH</span> <span class="alias">dept_avg</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">department</span>,
+         <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="alias">avg_sal</span>
+  <span class="kw">FROM</span>   <span class="tbl">employee2</span>
+  <span class="kw">GROUP BY</span> <span class="col">department</span>
+)
+<span class="kw">SELECT</span>
+  <span class="alias">e</span>.<span class="col">first_name</span>, <span class="alias">e</span>.<span class="col">last_name</span>,
+  <span class="alias">e</span>.<span class="col">salary</span>,
+  <span class="alias">da</span>.<span class="alias">avg_sal</span>,
+  (<span class="alias">e</span>.<span class="col">salary</span> - <span class="alias">da</span>.<span class="alias">avg_sal</span>) <span class="kw">AS</span> <span class="alias">diff_from_avg</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span> <span class="alias">e</span>
+<span class="kw">INNER JOIN</span> <span class="alias">dept_avg</span> <span class="alias">da</span> <span class="kw">ON</span> <span class="alias">e</span>.<span class="col">department</span> = <span class="alias">da</span>.<span class="col">department</span>;`},
+
+{n:94,t:"Find jobs posted in January 2023 with salary max above 100,000.",tags:["where","date"],
+a:`<span class="kw">SELECT</span> <span class="col">title</span>, <span class="col">salary_max</span>, <span class="col">posted_date</span>
+<span class="kw">FROM</span>   <span class="tbl">jobs</span>
+<span class="kw">WHERE</span>  <span class="col">posted_date</span> <span class="kw">BETWEEN</span> <span class="str">'2023-01-01'</span> <span class="kw">AND</span> <span class="str">'2023-01-31'</span>
+  <span class="kw">AND</span>  <span class="col">salary_max</span> > <span class="num">100000</span>;`},
+
+{n:95,t:"Show services with an estimated total cost (rate × duration).",tags:["select","agg"],
+a:`<span class="kw">SELECT</span>
+  <span class="col">service_name</span>,
+  <span class="col">hourly_rate</span>,
+  <span class="col">avg_duration_hours</span>,
+  (<span class="col">hourly_rate</span> * <span class="col">avg_duration_hours</span>) <span class="kw">AS</span> <span class="alias">estimated_cost</span>
+<span class="kw">FROM</span>   <span class="tbl">services</span>
+<span class="kw">ORDER BY</span> <span class="alias">estimated_cost</span> <span class="kw">DESC</span>;`},
+
+{n:96,t:"Find stores larger than 10,000 sq ft in New York.",tags:["where"],
+a:`<span class="kw">SELECT</span> <span class="col">store_name</span>, <span class="col">square_feet</span>, <span class="col">city</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span>
+<span class="kw">WHERE</span>  <span class="col">city</span> = <span class="str">'New York'</span>
+  <span class="kw">AND</span>  <span class="col">square_feet</span> > <span class="num">10000</span>;`},
+
+{n:97,t:"Show all full-time employees in IT or Marketing (IN clause).",tags:["where"],
+a:`<span class="kw">SELECT</span> <span class="col">first_name</span>, <span class="col">last_name</span>, <span class="col">department</span>
+<span class="kw">FROM</span>   <span class="tbl">full_time_employees</span>
+<span class="kw">WHERE</span>  <span class="col">department</span> <span class="kw">IN</span> (<span class="str">'IT'</span>, <span class="str">'Marketing'</span>);`},
+
+{n:98,t:"CTE: list top 3 products by total quantity sold.",tags:["cte","agg"],
+a:`<span class="kw">WITH</span> <span class="alias">product_sales</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">product_id</span>,
+         <span class="fn">SUM</span>(<span class="col">quantity</span>) <span class="kw">AS</span> <span class="alias">total_qty</span>
+  <span class="kw">FROM</span>   <span class="tbl">order_items</span>
+  <span class="kw">GROUP BY</span> <span class="col">product_id</span>
+)
+<span class="kw">SELECT</span> <span class="alias">p</span>.<span class="col">product_name</span>, <span class="alias">ps</span>.<span class="alias">total_qty</span>
+<span class="kw">FROM</span>   <span class="tbl">products</span> <span class="alias">p</span>
+<span class="kw">INNER JOIN</span> <span class="alias">product_sales</span> <span class="alias">ps</span> <span class="kw">ON</span> <span class="alias">p</span>.<span class="col">product_id</span> = <span class="alias">ps</span>.<span class="col">product_id</span>
+<span class="kw">ORDER BY</span> <span class="alias">ps</span>.<span class="alias">total_qty</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>  <span class="num">3</span>;`},
+
+{n:99,t:"Pivot: count employees per department using CASE + SUM.",tags:["agg","select"],
+a:`<span class="kw">SELECT</span>
+  <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> <span class="col">department</span>=<span class="str">'Sales'</span>     <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> <span class="alias">Sales</span>,
+  <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> <span class="col">department</span>=<span class="str">'Marketing'</span> <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> <span class="alias">Marketing</span>,
+  <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> <span class="col">department</span>=<span class="str">'IT'</span>        <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> <span class="alias">IT</span>
+<span class="kw">FROM</span>   <span class="tbl">employee2</span>;`},
+
+{n:100,t:"Full pipeline: CTE + JOIN + GROUP BY + HAVING — stores with revenue above 1,000.",tags:["cte","join","agg"],
+a:`<span class="kw">WITH</span> <span class="alias">store_rev</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="col">store_id</span>,
+         <span class="fn">SUM</span>(<span class="col">line_total</span>) <span class="kw">AS</span> <span class="alias">revenue</span>
+  <span class="kw">FROM</span>   <span class="tbl">order_items</span>
+  <span class="kw">GROUP BY</span> <span class="col">store_id</span>
+  <span class="kw">HAVING</span>   <span class="fn">SUM</span>(<span class="col">line_total</span>) > <span class="num">1000</span>
+)
+<span class="kw">SELECT</span>
+  <span class="alias">s</span>.<span class="col">store_name</span>,
+  <span class="alias">s</span>.<span class="col">city</span>,
+  <span class="alias">sr</span>.<span class="alias">revenue</span>
+<span class="kw">FROM</span>   <span class="tbl">stores</span> <span class="alias">s</span>
+<span class="kw">INNER JOIN</span> <span class="alias">store_rev</span> <span class="alias">sr</span> <span class="kw">ON</span> <span class="alias">s</span>.<span class="col">store_id</span> = <span class="alias">sr</span>.<span class="col">store_id</span>
+<span class="kw">ORDER BY</span> <span class="alias">sr</span>.<span class="alias">revenue</span> <span class="kw">DESC</span>;`},
+];
+
+function filterAll(){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn')[0].classList.add('active');
+  document.querySelectorAll('.q-card').forEach(c=>c.style.display='');
+}
+function filterTag(tag){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.q-card').forEach(c=>{
+    c.style.display=c.dataset.tags.includes(tag)?'':'none';
+  });
+}
+function toggle(i){
+  var ans=document.getElementById('ans-'+i);
+  var btn=document.getElementById('btn-'+i);
+  var open=ans.classList.toggle('open');
+  btn.textContent=open?'Hide':'Show answer';
+}
+
+var container=document.getElementById('questions');
+var tagLabels={
+  where:'tag-where',select:'tag-select',agg:'tag-agg',join:'tag-join',
+  cte:'tag-cte',union:'tag-union',distinct:'tag-distinct',
+  subquery:'tag-subquery',string:'tag-string',date:'tag-date'
+};
+var tagNames={
+  where:'WHERE',select:'SELECT',agg:'Aggregate',join:'JOIN',
+  cte:'CTE',union:'UNION',distinct:'DISTINCT',
+  subquery:'Subquery',string:'String',date:'Date'
+};
+
+Q.forEach(function(q){
+  var tags=q.tags.map(t=>'<span class="tag '+tagLabels[t]+'">'+tagNames[t]+'</span>').join('');
+  var html='<div class="q-card" data-tags="'+q.tags.join(',')+'">'+
+    '<div class="q-header" onclick="toggle('+q.n+')">'+
+      '<div class="q-num">'+q.n+'</div>'+
+      '<div style="flex:1"><div class="q-text">'+q.t+'</div>'+
+      '<div class="q-meta">'+tags+'</div></div>'+
+      '<button class="toggle-btn" id="btn-'+q.n+'" onclick="event.stopPropagation();toggle('+q.n+')">Show answer</button>'+
+    '</div>'+
+    '<div class="q-answer" id="ans-'+q.n+'"><pre>'+q.a+'</pre></div>'+
+  '</div>';
+  container.insertAdjacentHTML('beforeend',html);
+});
+</script>
+</body>
+</html>

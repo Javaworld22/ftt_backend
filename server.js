@@ -24,6 +24,7 @@ const agentRouter = require('./api/router/agent.router');
 const corporateAgentRouter = require('./api/router/corporateAgent.router');
 const projectOwnerRouter = require('./api/router/projectOwner.router');
 const projectRouter = require('./api/router/project.router');
+const userRouter = require('./api/router/user.router');
 
 app.use(`${prefix}/campaigns`, campaignRouter);
 app.use(`${prefix}/donations`, donationRouter);
@@ -33,6 +34,7 @@ app.use(`${prefix}/agents`, agentRouter);
 app.use(`${prefix}/corporate-agents`, corporateAgentRouter);
 app.use(`${prefix}/project-owners`, projectOwnerRouter);
 app.use(`${prefix}/projects`, projectRouter);
+app.use(`${prefix}/users`, userRouter);
 
 // Swagger UI
 const swaggerUi = require('swagger-ui-express');
@@ -49,15 +51,7 @@ app.use('/assets',express.static(path.join(__dirname,'public/assets')))
 const env = dotenv.config();
 const connectionString = process.env.MONGODB_URI
 
-// mongoose.connect(connectionString, { useUnifiedTopology: true })
-//   .then(client => {
-//     console.log('Connected to Database')
-//      const db = client.db('aircrack')
-//     console.log('Passed creating db')
-//     // const values = db.collection('venttech_api')
-//     console.log('Created collection')
-//     // values.createIndex({ "phone": 1, }, { unique: true })
-
+const { PORT, MONGODB_URI, JWT_KEY } = process.env;
 
 
     app.get('/privacy-policy', function(req, res) {
@@ -68,11 +62,32 @@ const connectionString = process.env.MONGODB_URI
       res.render('account_delete');
     });
 
-// //})
+	app.get('/sql-examples', function(req, res) {
+		res.render('sql_example');
+	  });
 
-app.listen(port, () => { console.log(`Starting the server at ${port}`) })
-// }).catch(error => {
-// console.error('Error occurred at database')
-// console.error(error)
+app.listen(PORT, () => {
+	console.info(`Node server listening on port: ${PORT}`);
+	console.log("connecting to database, please wait...");
+	console.log(`Server running on http://localhost/api/v1:${PORT}`)
+	const mongoURI = connectionString;
 
-// })
+	// Skip DB connection if URI is not configured
+	if (!mongoURI || mongoURI.includes('your-connection-string')) {
+		console.warn("⚠️  MongoDB not configured - running without database");
+		console.warn("   Set MONGO_DB_URI in .env to enable database features");
+		return;
+	}
+
+	console.log("connecting to database, please wait...");
+	mongoose
+		.connect(mongoURI)
+		.then(() => {
+			console.info("✅ database connection established");
+		})
+		.catch((err) => {
+			console.log(`err: ${err}`);
+			console.warn("database connection failed, please check your network!");
+		});
+
+})
