@@ -18,8 +18,9 @@
  * STAKEHOLDERS BREAKDOWN (50% of profit):
  * - R1: 5%
  * - PB: 15%
- * - SF: 20%
- * - BMG: 60%
+ * - SF: 17.5% (reduced from 20%)
+ * - BMG: 55% (reduced from 60%)
+ * - NEW: 2.5% (new category)
  *
  * @class ProfitSharing
  * @requires models/Season
@@ -91,8 +92,9 @@ class ProfitSharing {
   static STAKEHOLDER_DISTRIBUTION = {
     R1: 0.05,    // 5%
     PB: 0.15,    // 15%
-    SF: 0.20,    // 20%
-    BMG: 0.60    // 60%
+    SF: 0.175,   // 17.5% (reduced from 20%)
+    BMG: 0.55,   // 55% (reduced from 60%)
+    NEW: 0.025   // 2.5% (new category)
   };
 
   /**
@@ -360,6 +362,7 @@ class ProfitSharing {
     const pbShare = stakeholdersShare * ProfitSharing.STAKEHOLDER_DISTRIBUTION.PB;
     const sfShare = stakeholdersShare * ProfitSharing.STAKEHOLDER_DISTRIBUTION.SF;
     const bmgShare = stakeholdersShare * ProfitSharing.STAKEHOLDER_DISTRIBUTION.BMG;
+    const newShare = stakeholdersShare * ProfitSharing.STAKEHOLDER_DISTRIBUTION.NEW;
 
     return {
       total: Math.round(stakeholdersShare * 100) / 100,
@@ -376,18 +379,23 @@ class ProfitSharing {
         },
         sf: {
           amount: Math.round(sfShare * 100) / 100,
-          percentage: 20,
+          percentage: 17.5,
           description: 'SF'
         },
         bmg: {
           amount: Math.round(bmgShare * 100) / 100,
-          percentage: 60,
+          percentage: 55,
           description: 'BMG'
+        },
+        new: {
+          amount: Math.round(newShare * 100) / 100,
+          percentage: 2.5,
+          description: 'NEW'
         }
       },
       verification: {
-        totalAllocated: Math.round((r1Share + pbShare + sfShare + bmgShare) * 100) / 100,
-        matches: Math.abs(stakeholdersShare - (r1Share + pbShare + sfShare + bmgShare)) < 0.01
+        totalAllocated: Math.round((r1Share + pbShare + sfShare + bmgShare + newShare) * 100) / 100,
+        matches: Math.abs(stakeholdersShare - (r1Share + pbShare + sfShare + bmgShare + newShare)) < 0.01
       }
     };
   }
@@ -435,7 +443,8 @@ class ProfitSharing {
         r1: stakeholderDistribution.breakdown.r1.amount,
         pb: stakeholderDistribution.breakdown.pb.amount,
         sf: stakeholderDistribution.breakdown.sf.amount,
-        bmg: stakeholderDistribution.breakdown.bmg.amount
+        bmg: stakeholderDistribution.breakdown.bmg.amount,
+        new: stakeholderDistribution.breakdown.new.amount
       }
     };
   }

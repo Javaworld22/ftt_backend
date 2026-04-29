@@ -25,6 +25,7 @@ const corporateAgentRouter = require('./api/router/corporateAgent.router');
 const projectOwnerRouter = require('./api/router/projectOwner.router');
 const projectRouter = require('./api/router/project.router');
 const userRouter = require('./api/router/user.router');
+const profitSharingRouter = require('./api/router/profitSharing.router');
 
 app.use(`${prefix}/campaigns`, campaignRouter);
 app.use(`${prefix}/donations`, donationRouter);
@@ -35,6 +36,7 @@ app.use(`${prefix}/corporate-agents`, corporateAgentRouter);
 app.use(`${prefix}/project-owners`, projectOwnerRouter);
 app.use(`${prefix}/projects`, projectRouter);
 app.use(`${prefix}/users`, userRouter);
+app.use(`${prefix}/profit-sharing`, profitSharingRouter);
 
 // Swagger UI
 const swaggerUi = require('swagger-ui-express');

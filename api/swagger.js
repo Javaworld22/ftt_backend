@@ -407,6 +407,168 @@ const swaggerDefinition = {
         },
       },
 
+      // ── Profit Sharing ───────────────────────────────────────────────────────
+      ProfitCalculation: {
+        type: 'object',
+        properties: {
+          totalRaised: { type: 'number', example: 100000 },
+          finalProfit: { type: 'number', example: 1995.8 },
+          effectiveRate: { type: 'string', example: '2.00%' },
+          calculations: {
+            type: 'object',
+            properties: {
+              step1: { type: 'object', properties: { formula: { type: 'string' }, result: { type: 'number' } } },
+              step2: { type: 'object', properties: { formula: { type: 'string' }, result: { type: 'number' } } },
+              step3: { type: 'object', properties: { formula: { type: 'string' }, result: { type: 'number' } } },
+              step4: { type: 'object', properties: { formula: { type: 'string' }, result: { type: 'number' } } },
+              step5: { type: 'object', properties: { formula: { type: 'string' }, result: { type: 'number' } } },
+            },
+          },
+        },
+      },
+
+      VendorDistribution: {
+        type: 'object',
+        properties: {
+          totalProfit: { type: 'number', example: 1995.8 },
+          vendors: {
+            type: 'object',
+            properties: {
+              agents: {
+                type: 'object',
+                properties: {
+                  total: { type: 'number', example: 997.9 },
+                  percentage: { type: 'number', example: 50 },
+                  distribution: {
+                    type: 'object',
+                    properties: {
+                      breakdown: {
+                        type: 'object',
+                        properties: {
+                          freelancing: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number' } } },
+                          corporate: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number' } } },
+                          major: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number' } } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              stakeholders: {
+                type: 'object',
+                properties: {
+                  total: { type: 'number', example: 997.9 },
+                  percentage: { type: 'number', example: 50 },
+                  distribution: {
+                    type: 'object',
+                    properties: {
+                      breakdown: {
+                        type: 'object',
+                        properties: {
+                          r1: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number', example: 5 } } },
+                          pb: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number', example: 15 } } },
+                          sf: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number', example: 17.5 } } },
+                          bmg: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number', example: 55 } } },
+                          new: { type: 'object', properties: { amount: { type: 'number' }, percentage: { type: 'number', example: 2.5 } } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      ProfitSharingResult: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Profit sharing executed successfully' },
+          season: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              campaign: { type: 'string' },
+              goal: { type: 'number' },
+              totalRaised: { type: 'number' },
+            },
+          },
+          selectedDonors: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                rank: { type: 'integer' },
+                donor: { type: 'object' },
+                contributions: { type: 'object' },
+              },
+            },
+          },
+          profitCalculation: { $ref: '#/components/schemas/ProfitCalculation' },
+          vendorDistribution: { $ref: '#/components/schemas/VendorDistribution' },
+        },
+      },
+
+      ProfitSharingConfig: {
+        type: 'object',
+        properties: {
+          multipliers: {
+            type: 'object',
+            properties: {
+              INITIAL: { type: 'number', example: 1.8 },
+              FIRST: { type: 'number', example: 0.1 },
+              SECOND: { type: 'number', example: 0.44 },
+              THIRD: { type: 'number', example: 0.63 },
+              FINAL: { type: 'number', example: 0.4 },
+            },
+          },
+          effectiveRate: { type: 'string', example: '2.00%' },
+          minDonations: { type: 'integer', example: 5 },
+          selectedDonorsCount: { type: 'integer', example: 2 },
+          vendorSplit: {
+            type: 'object',
+            properties: {
+              agents: { type: 'string', example: '50%' },
+              stakeholders: { type: 'string', example: '50%' },
+            },
+          },
+          stakeholderDistribution: {
+            type: 'object',
+            properties: {
+              r1: { type: 'string', example: '5%' },
+              pb: { type: 'string', example: '15%' },
+              sf: { type: 'string', example: '17.5%' },
+              bmg: { type: 'string', example: '55%' },
+              new: { type: 'string', example: '2.5%' },
+            },
+          },
+        },
+      },
+
+      CalculateProfitInput: {
+        type: 'object',
+        required: ['totalRaised'],
+        properties: {
+          totalRaised: { type: 'number', minimum: 0, example: 100000 },
+        },
+      },
+
+      ProfitSharingSummaryInput: {
+        type: 'object',
+        required: ['seasonIds'],
+        properties: {
+          seasonIds: {
+            type: 'array',
+            items: { type: 'string', example: '507f1f77bcf86cd799439014' },
+            minItems: 1,
+            example: ['507f1f77bcf86cd799439014', '507f1f77bcf86cd799439015'],
+          },
+        },
+      },
+
       // ── Error ─────────────────────────────────────────────────────────────
       Error: {
         type: 'object',
