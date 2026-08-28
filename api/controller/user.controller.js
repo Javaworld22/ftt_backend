@@ -41,6 +41,12 @@ const register = async (req, res) => {
     }
 
     // Password validation removed - no length restriction
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 8 characters',
+      });
+    }
 
     // Email format validation
     if (!/^\S+@\S+\.\S+$/.test(email)) {

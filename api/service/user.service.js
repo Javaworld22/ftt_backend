@@ -1,7 +1,11 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const dotenv = require("dotenv");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ftt_secret_key';
+const env = dotenv.config();
+
+if (!process.env.JWT_KEY) throw new Error('JWT_SECRET is not set');
+const JWT_SECRET = process.env.JWT_KEY ;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 // Register new user
@@ -106,6 +110,10 @@ const _login = async (identifier, password) => {
       }
     };
   } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      throw new Error(`User with this ${field} already exists`);
+    }
     throw error;
   }
 };
@@ -122,6 +130,7 @@ const _getUserById = async (userId) => {
       data: user
     };
   } catch (error) {
+    if (error.name === 'CastError') throw new Error('Invalid user ID');
     throw error;
   }
 };
